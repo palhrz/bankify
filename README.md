@@ -3,24 +3,24 @@
 An online banking API project using NodeJS and Mysql
 
 
-## Getting Started
-
-### Prerequisites
-
-Node v18
-
-### Installation
-``bash
-   git clone https://github.com/your-username/your-api-repo.git
-   npm install
-   node index.js
-
-## Configuration
-
-.env file
-PORT
-JWT
-SECRET
-
-## API Endpoints
-
+# Getting started
+- Clone the repository
+```
+git clone https://github.com/palhrz/bankify.git
+```
+- Install dependencies
+```
+cd bankify
+npm install
+```
+- Add .env file
+```
+PORT=
+JWT=
+TOKEN_KEY=
+```
+- Build and run the project
+```
+node index.js
+```
+  Navigate to `http://localhost:8001`
