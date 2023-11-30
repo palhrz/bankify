@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       role_id: {
-        type: Sequelize.NUMBER
+        type: Sequelize.INTEGER
       },
       role_name: {
         type: Sequelize.STRING

@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      ffull_name: {
+      full_name: {
         type: Sequelize.STRING
       },
       address: {
@@ -27,7 +27,7 @@ module.exports = {
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE  
       }
     });
   },

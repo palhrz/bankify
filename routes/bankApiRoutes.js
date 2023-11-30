@@ -15,7 +15,7 @@ module.exports = function(app) {
     app.route('/api/changePassword')
         .put(bankApi.change_password);
 
-    app.route('/api/user/:Id')
+    app.route('/api/user/:id')
         .get(bankApi.find_user_byId);
 
     app.route('/api/login')

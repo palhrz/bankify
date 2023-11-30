@@ -2,7 +2,7 @@
 
 // const transaction = require('../models/transaction');
 
-const User = require('../models/user');
+const { User, Account, Profile, Transaction } = require('../models');
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
 const bcrypt = require("bcrypt");
@@ -16,8 +16,11 @@ const bcrypt = require("bcrypt");
 
 exports.getAll = async function (req, res) {
     try {
-      const users = await User.findAll();
-      res.json(users);
+        console.log(User);
+        const users = await User.findAll({
+            include: [Account],
+          });
+        res.json(users);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -25,7 +28,8 @@ exports.getAll = async function (req, res) {
 
 exports.find_user_byId = async function (req, res) {
   try {
-    const user = await User.findByPk(req.params.id);
+    const user = await User.findByPk(req.params.id,
+        { include: [Account] });
     if (!user) {
       res.status(404).send("User does not exist in the database");
     }
@@ -59,11 +63,11 @@ exports.register_user = async function(req, res) {
             password: encryptedPassword,
             role_id: role_id || 2,
         });
-        console.log("created");
+        console.log(user.id);
         // Create token
-        const token = jwt.sign({ user_id: user._id, email },
+        const token = jwt.sign({ user_id: user.id, email },
             process.env.TOKEN_KEY, {
-                expiresIn: "2h",
+                expiresIn: "24h",
             }
         );
         // save user token

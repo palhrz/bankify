@@ -11,16 +11,19 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Transaction.belongsTo(models.Account, { foreignKey: 'account_id' });
     }
   }
   Transaction.init({
-    type: DataTypes.STRING,
-    acc_number: DataTypes.INTEGER,
+    type: { type: DataTypes.STRING, validate: {
+      isIn: [['Deposit', 'Withdraw', 'Transfer']]
+    }},
+    account_no: DataTypes.INTEGER,
     description: DataTypes.STRING,
     amount: DataTypes.INTEGER,
-    time: DataTypes.DATE,
-    account_id: DataTypes.INTEGER
-  }, {
+    time: {type: DataTypes.DATE, defaultValue: sequelize.fn('NOW') },
+    account_id: DataTypes.DATE, },
+    {
     sequelize,
     modelName: 'Transaction',
   });

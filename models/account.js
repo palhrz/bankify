@@ -1,7 +1,5 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Account extends Model {
     /**
@@ -11,11 +9,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Account.hasMany(sequelize.define('Transaction'))
+      Account.hasMany(models.Transaction, { foreignKey: 'account_id' });
+      Account.belongsTo(models.User, { foreignKey: 'user_id' });
     }
   }
   Account.init({
-    account_no: { type: Number, defaultValue: Math.floor(Math.random() * 10000000) + 1111111 },
+    account_no: { type: Number, defaultValue: function() {
+      return Math.floor(Math.random() * 10000000) + 1111111;
+    }, unique: true, // Ensure uniqueness
+  },
     account_type: DataTypes.STRING,
     balance: DataTypes.INTEGER,
     user_id: DataTypes.INTEGER

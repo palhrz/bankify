@@ -11,7 +11,9 @@ const verifyToken = (req, res, next) => {
     }
     try {
         const decoded = jwt.verify(token, config.TOKEN_KEY);
+        console.log("dec",decoded);
         req.user = decoded;
+        console.log(req.user);
     } catch (err) {
         return res.status(401).send("Invalid Token");
     }
@@ -19,3 +21,5 @@ const verifyToken = (req, res, next) => {
 };
 
 module.exports = verifyToken;
+
+//stuck at token didnt have user_id after decoded
