@@ -43,14 +43,14 @@ exports.getByAccNo = async function (req, res) {
     }
 };
 
-
+//search transaction history by sender acc number
 exports.GetTransactionHistory = function(req, res) {
     Transaction.findAll({
-        where: { account_no: req.params.acc_number }
+        where: { sender: req.params.acc_number }
     })
     .then(transactions => {
         if (transactions.length === 0) {
-            res.status(404).send(`User with account number ${req.params.acc_number} does not exist`);
+            res.status(404).send(`Transaction with account number ${req.params.acc_number} does not exist`);
         } else {
             res.json(transactions);
         }
@@ -89,28 +89,28 @@ exports.createAccount = async function (req, res) {
 
 exports.deposit_funds = async function(req, res) {
     try {
-
-        const { account_no, amount, description, acc_id } = req.body;
-        if (!(account_no && amount && description && from)) {
+        const { account_no, amount, description } = req.body;
+        if (!(account_no && amount && description )) {
             res.status(400).send("All input are required");
         }
-        let acc = Account.findOne({ where: { account_no } });
+        let acc = await Account.findOne({ where: { account_no } });
         if (acc === null) {
             res.status(404).send(`This User with account number ${account_no} does not exist`);
         }
-        if (amount < 5000) {
-            res.status(400).send(`Sorry, deposit amount cannot be less than 5000`);
+        if (amount < 10) {
+            res.status(400).send(`Sorry, deposit amount cannot be less than 10`);
         }
-        if (amount >= 5000) {
+        if (amount >= 10) {
             acc.balance = acc.balance + amount;
             let transactionDetails = {
-                transactionType: 'Deposit',
+                type: 'Deposit',
                 account_no: account_no,
                 description: description,
-                amount: amount,
-                account_id: acc_id
+                amount: amount
+                // account_id: acc_id
             };
             await acc.save();
+            console.log('saved');
             await Transaction.create(transactionDetails)
             res.status(201).send(`Deposit of ${formatter.format(amount)} to ${account_no} was successful.`)
         }
@@ -196,7 +196,7 @@ exports.withdraw_money = async function(req, res) {
         if (!withdrawAmount) {
             res.status(400).send("Please input the amount you'd like to withdraw");
         }
-        let currentUser = await User.findById(req.user.user_id);
+        let currentUser = await User.findByPk(req.user.user_id);
         if (withdrawAmount > currentUser.accountBalance) {
             res.status(400).send("Insufficient funds to make this withdrawal");
         }
@@ -204,9 +204,9 @@ exports.withdraw_money = async function(req, res) {
         let transactionDetails = {
             transactionType: 'Withdraw',
             accountNumber: currentUser.accountNumber,
-            description: `NIBSS withdrawal of ${formatter.format(withdrawAmount)}`,
+            description: `Withdrawal of ${formatter.format(withdrawAmount)}`,
             //sender: currentUser.accountNumber,
-            transactionAmount: withdrawAmount
+            amount: withdrawAmount
         };
         await currentUser.save();
         await Transaction.create(transactionDetails);
