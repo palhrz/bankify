@@ -45,10 +45,19 @@ exports.getByAccNo = async function (req, res) {
 
 
 exports.GetTransactionHistory = function(req, res) {
-    Transaction.findAll({ account_no: req.params.acc_number }, function(err, transaction) {
-        if (err)
-            res.status(404).send(`User with account number ${acc_number} does not exist`);
-        res.json(transaction);
+    Transaction.findAll({
+        where: { account_no: req.params.acc_number }
+    })
+    .then(transactions => {
+        if (transactions.length === 0) {
+            res.status(404).send(`User with account number ${req.params.acc_number} does not exist`);
+        } else {
+            res.json(transactions);
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        res.status(500).send('Internal Server Error');
     });
 };
 
@@ -121,7 +130,8 @@ exports.transfer_money = async function(req, res) {
 
         // Find the beneficiary based on the provided account number
         const beneficiary = await Account.findOne({ where: { account_no } });
-
+        console.log("Penerima",beneficiary);
+        console.log("belen",beneficiary.balance);
         if (!beneficiary) {
             return res.status(400).send("User with this account number does not exist");
         }
@@ -144,10 +154,6 @@ exports.transfer_money = async function(req, res) {
         }
         
         
-        // const isTransferToOwnAccount = currentUser.Accounts.some(
-        //     userAccount => userAccount.id === beneficiary.id
-        // );
-
         if (senderAccount === beneficiary) {
             return res.status(400).send("You cannot transfer money to the same account");
         }
@@ -157,12 +163,14 @@ exports.transfer_money = async function(req, res) {
         }
 
         // Update beneficiary and current user account balances
-        beneficiary.accountBalance += amount;
-        currentUser.Accounts[0].accountBalance -= amount;
-
+        beneficiary.balance += amount;
+        senderAccount.balance -= amount;
+        // Check amount after transfer
+        console.log(beneficiary.balance);
+        console.log(senderAccount.balance);
         // Save changes to the database
         await beneficiary.save();
-        await currentUser.Accounts[0].save();
+        await senderAccount.save();
 
         // Create a transaction record
         const transactionDetails = {
@@ -170,7 +178,7 @@ exports.transfer_money = async function(req, res) {
             account_no,
             description,
             sender: senderAccount.account_no,
-            transactionAmount: amount,
+            amount: amount,
         };
 
         await Transaction.create(transactionDetails);

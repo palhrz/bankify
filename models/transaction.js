@@ -21,8 +21,9 @@ module.exports = (sequelize, DataTypes) => {
     account_no: DataTypes.INTEGER,
     description: DataTypes.STRING,
     amount: DataTypes.INTEGER,
-    time: {type: DataTypes.DATE, defaultValue: sequelize.fn('NOW') },
-    account_id: DataTypes.DATE, },
+    sender: DataTypes.INTEGER,
+    time: {type: DataTypes.DATE, defaultValue: sequelize.fn('NOW') }
+    },
     {
     sequelize,
     modelName: 'Transaction',
