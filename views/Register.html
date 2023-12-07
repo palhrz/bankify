@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap-5.3.2-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="css/fontawesome/fontawesome-free-6.4.2-web/css/all.css">
+    <link rel="stylesheet" href="css/default.css">
+</head>
+
+<body class="d-flex align-items-center justify-content-center">
+
+    <!-- Card: Registration Form Card-->
+    <div class="card registration-form-card col-6 bg-transparent border-0">
+        <!-- Card Body-->
+        <div class="card-body">
+            <!-- Form Header -->
+            <h1 class="form-header card-title mb-3">
+                <i class="fa fa-edit"></i> Register
+            </h1>
+            <!-- End Of Form Header -->
+
+            <!-- Registration Form -->
+            <form action="" class="reg-form">
+                <!--Row -->
+                <div class="row">
+                    <!--Form Group-->
+                    <div class="form-group col">
+                        <input type="text" name="first_name" class="form-control lg" placeholder="Enter First Name" />
+                    </div>
+                    <!--End Of Form Group-->
+
+                    <!--Form Group-->
+                    <div class="form-group col">
+                        <input type="text" name="last_name" class="form-control lg" placeholder="Enter Last Name" />
+                    </div>
+                    <!--End Of Form Group-->
+
+                </div>
+                <!--End Of Row -->
+
+                <!--Form Group-->
+                <div class="form-group col">
+                    <input type="email" name="email" class="form-control lg" placeholder="Enter Email" />
+                </div>
+                <!--End Of Form Group-->
+
+                <!--Row -->
+                <div class="row">
+                    <!--Form Group-->
+                    <div class="form-group col">
+                        <input type="password" id="password" name="password" class="form-control lg" placeholder="Enter Password" />
+                    </div>
+                    <!--End Of Form Group-->
+
+                    <!--Form Group-->
+                    <div class="form-group col">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control lg" placeholder="Confirm Password" />
+                        <small id="passwordError" class="text-danger"></small>
+                    </div>
+                    <!--End Of Form Group-->
+
+                </div>
+                <!--End Of Row -->
+
+                <!--Form Group-->
+                <div class="form-group col lg">
+                    <button type="button" onclick="validatePassword()" class="btn btn-md">Register</button>
+                </div>
+                <!--End Of Form Group-->
+
+            </form>
+            <!-- End Of Registration Form -->
+
+            <!--Card Text-->
+            <p class="card-text text-white my-2">
+                Already have an account? <span class="ms-2"><a href="Login.html" class="btn btn-sm text-warning">Sign In</a></span>
+            </p>
+            <!--End Of Card Text-->
+
+            <!-- Back Button To Landing Page -->
+            <small class="text-warning">
+                <i class="fa fa-arrow-alt-circle-left"></i> <a href="index.html" class="btn btn-sm text-warning">Back</a>
+            </small>
+            <!-- End Of Back Button To Landing Page -->
+
+        </div>
+        <!-- End Of Card Body-->
+    </div>
+    <!-- Card: Registration Form Card-->
+
+    <script>
+      function validatePassword() {
+          const firstName = document.querySelector('input[name="first_name"]').value;
+          const lastName = document.querySelector('input[name="last_name"]').value;
+          const email = document.querySelector('input[name="email"]').value;
+          const password = document.getElementById('password').value;
+          const confirm_password = document.getElementById('confirm_password').value;
+          const passwordError = document.getElementById('passwordError');
+  
+          if (password !== confirm_password) {
+              passwordError.textContent = 'Passwords do not match';
+          } else {
+              passwordError.textContent = '';
+  
+              // Create user object
+              const user = {
+                  first_name: firstName,
+                  last_name: lastName,
+                  email,
+                  password,
+              };
+  
+              // Make a request to add the user
+              fetch('http://localhost:9000/api/register', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(user),
+              })
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error('Error adding user to the database');
+                  }
+                  // Show success message
+                  alert('User created successfully!');
+  
+                  // Redirect to Login.html
+                  window.location.href = 'Login.html';
+              })
+              .catch(error => {
+                  console.error(error);
+                  // Handle error scenarios
+                  alert('Failed to add user to the database');
+              });
+          }
+      }
+  </script>
+
+</body>
+
+</html>

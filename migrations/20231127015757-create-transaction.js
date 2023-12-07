@@ -19,7 +19,16 @@ module.exports = {
       account_no: {
         type: Sequelize.INTEGER
       },
-      description: {
+      beneficiary_name: {
+        type: Sequelize.STRING
+      },
+      status: {
+        type: Sequelize.STRING
+      },
+      reference: {
+        type: Sequelize.STRING
+      },
+      reason: {
         type: Sequelize.STRING
       },
       amount: {

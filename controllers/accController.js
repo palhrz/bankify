@@ -26,7 +26,7 @@ exports.getByAccNo = async function (req, res) {
             where: { account_no: accountNo },
             include: [{
                 model: User,
-                attributes: ['username'],
+                attributes: ['email'],
             }],
         });
 
@@ -38,6 +38,55 @@ exports.getByAccNo = async function (req, res) {
 
         // res.json(`The account balance of ${username} is ${formatter.format(account.balance)}`);
         res.json(account);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.accByUserId = async function (req, res) {
+    try {
+        const user_id = req.params.user_id; // assuming account_no is provided in the request params
+
+        // Find the account by account_no
+        const account = await Account.findAll({
+            where: { user_id: user_id },
+            include: [{
+                model: User,
+                attributes: ['email'],
+            }],
+        });
+
+        if (!account) {
+            return res.status(404).send(`Account with account number ${user_id} does not exist in the database`);
+        }
+
+        // const username = account.User ? account.User.username : `Unknown`;
+
+        // res.json(`The account balance of ${username} is ${formatter.format(account.balance)}`);
+        res.json(account);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getByUserId = async function (req, res) {
+    try {
+        const userId = req.params.user_id; // assuming user_id is provided in the request params
+
+        // Find all accounts for the user including associated transactions
+        const userAccounts = await Account.findAll({
+            where: { user_id: userId },
+            include: [{
+                model: Transaction,
+                attributes: ['account_no', 'beneficiary_name', 'type', 'amount', 'reference', 'status', 'reason'],
+            }],
+        });
+
+        if (!userAccounts || userAccounts.length === 0) {
+            return res.status(404).send(`User with ID ${userId} does not have any associated accounts`);
+        }
+
+        res.json(userAccounts);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -68,29 +117,36 @@ const formatter = new Intl.NumberFormat('en-US', {
 
 exports.createAccount = async function (req, res) {
     try {
-      const { account_type, balance, user_id } = req.body;
-  
-      if (!(account_type && balance)) {
-        res.status(400).send("All input is required");
-        return;
-      }
-  
-      const account = await Account.create({
-        account_type,
-        balance,
-        user_id
-      });
-  
-      res.status(201).json(account);
+        const { account_name, account_type, user_id } = req.body;
+    
+        if (!(account_name, account_type && user_id)) {
+            res.status(400).send("All input is required");
+            return;
+        }
+        
+        const existingAccount = await Account.findOne({ where: { account_type, user_id } });
+        if (existingAccount) {
+            res.status(400).send("Account already exists");
+            return;
+        }
+
+        const account = await Account.create({
+            account_name,
+            account_type,
+            user_id
+        });
+        console.log(account);
+        res.status(201).json(account);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+        console.error("Failed",error);
+        res.status(500).json({ message: error.message });
     }
   };
 
 exports.deposit_funds = async function(req, res) {
     try {
-        const { account_no, amount, description } = req.body;
-        if (!(account_no && amount && description )) {
+        const { account_no, amount } = req.body;
+        if (!(account_no && amount )) {
             res.status(400).send("All input are required");
         }
         let acc = await Account.findOne({ where: { account_no } });
@@ -105,7 +161,6 @@ exports.deposit_funds = async function(req, res) {
             let transactionDetails = {
                 type: 'Deposit',
                 account_no: account_no,
-                description: description,
                 amount: amount
                 // account_id: acc_id
             };
@@ -120,54 +175,64 @@ exports.deposit_funds = async function(req, res) {
     }
 }
 
-exports.transfer_money = async function(req, res) {
+//make corection, add reference. desc change to reason. add benefeciary name
+exports.payment = async function(req, res) {
     try {
-        const { account_no, amount, description, sender } = req.body;
+        const { account_no, amount, description, sender, reference, user_id } = req.body;
 
-        if (!(account_no && amount && description)) {
+        if (!(account_no && amount && sender && description && reference)) {
             return res.status(400).send("All input fields are required");
         }
 
         // Find the beneficiary based on the provided account number
         const beneficiary = await Account.findOne({ where: { account_no } });
-        console.log("Penerima",beneficiary);
-        console.log("belen",beneficiary.balance);
+
         if (!beneficiary) {
+            const transactionDetails = {
+                type: 'Payment',
+                account_no,
+                status: 'failed',
+                reason: 'nonexisted', // Add a description if needed
+                reference: reference,
+                sender: senderAccount.account_no,
+                amount: amount,
+            };
+    
+            await Transaction.create(transactionDetails);
             return res.status(400).send("User with this account number does not exist");
         }
-
         // Find the current user based on the user_id from the request
-        const currentUser = await User.findByPk(req.user.user_id, {
-            include: [{
-                model: Account // Specify the attributes you want to include
-            }],
-        });
-        console.log(currentUser.Accounts);
-        if (!currentUser) {
-            return res.status(400).send("Current user not found");
-        }
         const senderAccount = await Account.findOne({ where: { account_no: sender } });
-        // Check if the transfer is between the user's own accounts
-        
+
         if (!senderAccount) {
             return res.status(400).send("Sender account not found");
         }
-        
-        
-        if (senderAccount === beneficiary) {
-            return res.status(400).send("You cannot transfer money to the same account");
+
+        // Check if the transfer is between the user's own accounts
+        if (senderAccount.account_no === beneficiary.account_no) {
+            return res.status(400).send("You cannot make payment to the same account");
         }
 
-        if (amount > senderAccount.balance && amount <= 0) {
+        if (amount > senderAccount.balance || amount <= 0) {
+            
+            const transactionDetails = {
+                type: 'Transfer',
+                account_no,
+                status: 'success',
+                reason: 'insufficient',
+                reference: reference,
+                sender: senderAccount.account_no,
+                amount: amount,
+            };
+    
+            await Transaction.create(transactionDetails);
             return res.status(400).send("Invalid transfer amount or insufficient funds");
         }
 
         // Update beneficiary and current user account balances
         beneficiary.balance += amount;
         senderAccount.balance -= amount;
-        // Check amount after transfer
-        console.log(beneficiary.balance);
-        console.log(senderAccount.balance);
+
         // Save changes to the database
         await beneficiary.save();
         await senderAccount.save();
@@ -176,7 +241,75 @@ exports.transfer_money = async function(req, res) {
         const transactionDetails = {
             type: 'Transfer',
             account_no,
-            description,
+            status: 'Success',
+            reference: reference,
+            sender: senderAccount.account_no,
+            amount: amount,
+        };
+
+        await Transaction.create(transactionDetails);
+
+        return res.status(200).send(`Transfer of ${formatter.format(amount)} to ${account_no} was successful`);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+exports.transfer_money = async function(req, res) {
+    try {
+        const { account_no, amount, sender, user_id } = req.body;
+
+        if (!(account_no && amount && sender && user_id)) {
+            return res.status(400).send("All input fields are required");
+        }
+
+        // Find the beneficiary based on the provided account number
+        const beneficiary = await Account.findOne({ where: { account_no } });
+
+        if (!beneficiary) {
+            return res.status(400).send("User with this account number does not exist");
+        }
+        // Find the current user based on the user_id from the request
+        const senderAccount = await Account.findOne({ where: { account_no: sender } });
+
+        if (!senderAccount) {
+            return res.status(400).send("Sender account not found");
+        }
+
+        // Check if the transfer is between the user's own accounts
+        if (senderAccount.account_no === beneficiary.account_no) {
+            return res.status(400).send("You cannot transfer money to the same account");
+        }
+
+        if (amount > senderAccount.balance || amount <= 0) {
+            
+            const transactionDetails = {
+                type: 'Transfer',
+                account_no,
+                status: 'Insufficient',
+                // description: 'Some description here', // Add a description if needed
+                sender: senderAccount.account_no,
+                amount: amount,
+            };
+    
+            await Transaction.create(transactionDetails);
+            return res.status(400).send("Invalid transfer amount or insufficient funds");
+        }
+
+        // Update beneficiary and current user account balances
+        beneficiary.balance += amount;
+        senderAccount.balance -= amount;
+
+        // Save changes to the database
+        await beneficiary.save();
+        await senderAccount.save();
+
+        // Create a transaction record
+        const transactionDetails = {
+            type: 'Transfer',
+            account_no,
+            status: 'Success',
+            // description: 'Some description here', // Add a description if needed
             sender: senderAccount.account_no,
             amount: amount,
         };
@@ -190,20 +323,21 @@ exports.transfer_money = async function(req, res) {
     }
 }
 
+
 exports.withdraw_money = async function(req, res) {
     try {
-        const { withdrawAmount } = req.body;
-        if (!withdrawAmount) {
+        const { withdrawAmount, sender } = req.body;
+        if (!withdrawAmount && !sender) {
             res.status(400).send("Please input the amount you'd like to withdraw");
         }
-        let currentUser = await User.findByPk(req.user.user_id);
-        if (withdrawAmount > currentUser.accountBalance) {
+        let senderAccount = await Account.findOne({ where: { account_no: sender } });
+        if (withdrawAmount > senderAccount.balance) {
             res.status(400).send("Insufficient funds to make this withdrawal");
         }
-        currentUser.accountBalance = currentUser.accountBalance - withdrawAmount;
+        senderAccount.balance = senderAccount.balance - withdrawAmount;
         let transactionDetails = {
             transactionType: 'Withdraw',
-            accountNumber: currentUser.accountNumber,
+            sender: senderAccount.account_no,
             description: `Withdrawal of ${formatter.format(withdrawAmount)}`,
             //sender: currentUser.accountNumber,
             amount: withdrawAmount

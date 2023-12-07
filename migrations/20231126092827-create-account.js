@@ -9,6 +9,9 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      account_name: {
+        type: Sequelize.STRING
+      },
       account_no: {
         type: Sequelize.INTEGER,
         defaultValue: function () {
@@ -17,11 +20,12 @@ module.exports = {
       },
       account_type: {
         type: Sequelize.STRING,
-        enum: ['savings', 'current'],
-        defaultValue: 'savings'
+        enum: ['Check', 'Savings', 'Business'],
+        defaultValue: 'Savings'
       },
       balance: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0.00
       },
       user_id: {
         type: Sequelize.INTEGER

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Account.init({
+    account_name: DataTypes.STRING,
     account_no: { type: Number, defaultValue: function() {
       return Math.floor(Math.random() * 10000000) + 1111111;
     }, unique: true, // Ensure uniqueness

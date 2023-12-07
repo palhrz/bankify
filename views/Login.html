@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap/bootstrap-5.3.2-dist/css/bootstrap.css">
+    <link rel="stylesheet" href="css/fontawesome/fontawesome-free-6.4.2-web/css/all.css">
+    <link rel="stylesheet" href="css/default.css">
+    <title>Login</title>
+</head>
+
+<body class="d-flex align-items-center justify-content-center">
+    <!-- Card: Login Form Card-->
+    <div class="card login-form-card col-4 bg-transparent border-0">
+        <!-- Card Body-->
+        <div class="card-body">
+            <!-- Form Header -->
+            <h1 class="form-header card-titlee mb-3">
+                <i class="fa fa-user-circle"></i> Login
+            </h1>
+            <!-- End Of Form Header -->
+
+            <!-- Login Form -->
+            <form id="loginForm" class="login-form">
+                <!--Form Group-->
+                <div class="form-group col">
+                    <input type="email" id="email" name="email" class="form-control lg" placeholder="Enter Email" />
+                </div>
+                <!--End Of Form Group-->
+
+                <!--Form Group-->
+                <div class="form-group col">
+                    <input type="password" id="password" name="password" class="form-control lg" placeholder="Enter Password" />
+                </div>
+                <!--End Of Form Group-->
+
+                <!--Form Group-->
+                <div class="form-group col lg">
+                    <button type="button" class="btn btn-md" onclick="validateLogin()">Login</button>
+                </div>
+                <!--End Of Form Group-->
+            </form>
+            <!-- End Of Login Form -->
+
+            <!--Card Text-->
+            <p id="errorMessage" class="card-text text-white my-2"></p>
+            <p class="card-text text-white my-2">
+                Don't have an account? <span class="ms-2"><a href="/register" class="btn btn-sm text-warning">Sign Up</a></span>
+            </p>
+            <!--End Of Card Text-->
+
+            <!-- Back Button To Landing Page -->
+            <small class="text-warning">
+                <i class="fa fa-arrow-alt-circle-left"></i> <a href="/" class="btn btn-sm text-warning">Back</a>
+            </small>
+            <!-- End Of Back Button To Landing Page -->
+        </div>
+        <!-- End Of Card Body-->
+    </div>
+    <!-- Card: Login Form Card-->
+
+    <script>
+        function validateLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Make an AJAX request to the Node.js API
+            fetch('http://localhost:9000/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Invalid credentials');
+                }
+                // Parse the response JSON
+                return response.json();
+            })
+            .then(data => {
+                // Extract user ID from the response
+                console.log(data);
+                const userId = data.id;
+
+                // Redirect to Dashboard.html with the user ID as a query parameter
+                window.location.href = `/dashboard?id=${userId}`;
+            })
+                .catch(error => {
+                    document.getElementById('errorMessage').innerText = error.message;
+                });
+        }
+    </script>
+
+</body>
+
+</html>

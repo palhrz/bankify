@@ -1,0 +1,86 @@
+const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+<button type="button" class="btn btn-lg btn-danger" data-bs-toggle="popover" data-bs-title="Popover title" data-bs-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button>
+<button type="button" class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Top popover">
+    Popover on top
+  </button>
+  <button type="button" class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-content="Right popover">
+    Popover on right
+  </button>
+  <button type="button" class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content="Bottom popover">
+    Popover on bottom
+  </button>
+  <button type="button" class="btn btn-secondary" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-content="Left popover">
+    Popover on left
+  </button>
+  const popover = new bootstrap.Popover('.example-popover', {
+    container: 'body'
+  })
+  const popover = new bootstrap.Popover('.example-popover', {
+    container: '.modal-body'
+  })
+  .custom-popover {
+    --bs-popover-max-width: 200px;
+    --bs-popover-border-color: var(--bd-violet-bg);
+    --bs-popover-header-bg: var(--bd-violet-bg);
+    --bs-popover-header-color: var(--bs-white);
+    --bs-popover-body-padding-x: 1rem;
+    --bs-popover-body-padding-y: .5rem;
+  }
+  <button type="button" class="btn btn-secondary"
+        data-bs-toggle="popover" data-bs-placement="right"
+        data-bs-custom-class="custom-popover"
+        data-bs-title="Custom popover"
+        data-bs-content="This popover is themed via CSS variables.">
+  Custom popover
+</button>
+<a tabindex="0" class="btn btn-lg btn-danger" role="button" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-title="Dismissible popover" data-bs-content="And here's some amazing content. It's very engaging. Right?">Dismissible popover</a>
+const popover = new bootstrap.Popover('.popover-dismiss', {
+    trigger: 'focus'
+  })
+  <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Disabled popover">
+    <button class="btn btn-primary" type="button" disabled>Disabled button</button>
+  </span>
+  --#{$prefix}popover-zindex: #{$zindex-popover};
+--#{$prefix}popover-max-width: #{$popover-max-width};
+@include rfs($popover-font-size, --#{$prefix}popover-font-size);
+--#{$prefix}popover-bg: #{$popover-bg};
+--#{$prefix}popover-border-width: #{$popover-border-width};
+--#{$prefix}popover-border-color: #{$popover-border-color};
+--#{$prefix}popover-border-radius: #{$popover-border-radius};
+--#{$prefix}popover-inner-border-radius: #{$popover-inner-border-radius};
+--#{$prefix}popover-box-shadow: #{$popover-box-shadow};
+--#{$prefix}popover-header-padding-x: #{$popover-header-padding-x};
+--#{$prefix}popover-header-padding-y: #{$popover-header-padding-y};
+@include rfs($popover-header-font-size, --#{$prefix}popover-header-font-size);
+--#{$prefix}popover-header-color: #{$popover-header-color};
+--#{$prefix}popover-header-bg: #{$popover-header-bg};
+--#{$prefix}popover-body-padding-x: #{$popover-body-padding-x};
+--#{$prefix}popover-body-padding-y: #{$popover-body-padding-y};
+--#{$prefix}popover-body-color: #{$popover-body-color};
+--#{$prefix}popover-arrow-width: #{$popover-arrow-width};
+--#{$prefix}popover-arrow-height: #{$popover-arrow-height};
+--#{$prefix}popover-arrow-border: var(--#{$prefix}popover-border-color);
+$popover-font-size:                 $font-size-sm;
+$popover-bg:                        var(--#{$prefix}body-bg);
+$popover-max-width:                 276px;
+$popover-border-width:              var(--#{$prefix}border-width);
+$popover-border-color:              var(--#{$prefix}border-color-translucent);
+$popover-border-radius:             var(--#{$prefix}border-radius-lg);
+$popover-inner-border-radius:       calc(#{$popover-border-radius} - #{$popover-border-width}); // stylelint-disable-line function-disallowed-list
+$popover-box-shadow:                var(--#{$prefix}box-shadow);
+
+$popover-header-font-size:          $font-size-base;
+$popover-header-bg:                 var(--#{$prefix}secondary-bg);
+$popover-header-color:              $headings-color;
+$popover-header-padding-y:          .5rem;
+$popover-header-padding-x:          $spacer;
+
+$popover-body-color:                var(--#{$prefix}body-color);
+$popover-body-padding-y:            $spacer;
+$popover-body-padding-x:            $spacer;
+
+$popover-arrow-width:               1rem;
+$popover-arrow-height:              .5rem;
+const exampleEl = document.getElementById('example')
+const popover = new bootstrap.Popover(exampleEl, options)

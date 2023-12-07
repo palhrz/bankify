@@ -16,10 +16,15 @@ module.exports = (sequelize, DataTypes) => {
   }
   Transaction.init({
     type: { type: DataTypes.STRING, validate: {
-      isIn: [['Deposit', 'Withdraw', 'Transfer']]
+
+      isIn: [['Deposit', 'Withdraw', 'Transfer', 'Payment']]
     }},
     account_no: DataTypes.INTEGER,
-    description: DataTypes.STRING,
+    beneficiary_name: DataTypes.INTEGER,
+    type: DataTypes.STRING,
+    status: DataTypes.STRING,
+    reason: DataTypes.STRING,
+    reference: DataTypes.STRING,
     amount: DataTypes.INTEGER,
     sender: DataTypes.INTEGER,
     time: {type: DataTypes.DATE, defaultValue: sequelize.fn('NOW') }
