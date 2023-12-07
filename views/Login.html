@@ -75,6 +75,11 @@
             })
             .then(response => {
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Please verify your account first. \nKindly check your email');
+                        throw new Error('Unverified');
+                    }
+                    alert('Invalid Credentials');
                     throw new Error('Invalid credentials');
                 }
                 // Parse the response JSON

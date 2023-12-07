@@ -23,9 +23,9 @@
 
            <!-- Navigation -->
            <nav class="navigation">
-             <li><a href="Dashboard.html">Dashboard</a></li>
+             <li><a href="/dashboard">Dashboard</a></li>
              <li><a href="">Payment History</a></li>
-             <li><a href="transact_history.html">Transaction History</a></li>
+             <li><a href="/history">Transaction History</a></li>
            </nav>
            <!-- End Of Navigation -->
 
@@ -44,7 +44,7 @@
         <!-- End of Container-->
     </header>   
     <!-- Payment History Table -->
-    <table class="table text-center mb-2 me-2">
+    <table class="table text-center mb-2 me-2" id="paymentHistoryTable">
         <tr>
             <th>Record Number</th>
             <th>Beneficiary</th>
@@ -57,7 +57,7 @@
         </tr>
         <tbody>
          <!-- Data will be dynamically populated here -->
-     </tbody>
+        </tbody>
     </table>
 
     <script>
@@ -72,7 +72,7 @@
           });
           try {
               // Fetch payment history data
-              const response = await fetch('http://localhost:9000/api/payment_history');
+              const response = await fetch(`http://localhost:9000/api/paymentById/${userId}`);
               if (!response.ok) {
                   throw new Error('Failed to fetch payment history');
               }
@@ -84,19 +84,21 @@
               const tableBody = document.getElementById('paymentHistoryTable').getElementsByTagName('tbody')[0];
 
               // Populate the table rows dynamically
-              paymentHistoryData.forEach(transaction => {
-                  const row = tableBody.insertRow();
-                  row.innerHTML = `
-                      <td>${transaction.id}</td>
-                      <td>${transaction.beneficiary}</td>
-                      <td>${transaction.beneficiary_account_number}</td>
-                      <td>${transaction.amount}</td>
-                      <td>${transaction.status}</td>
-                      <td>${transaction.reference}</td>
-                      <td>${transaction.reason}</td>
-                      <td>${new Date(transaction.created_at).toLocaleString()}</td>
-                  `;
-              });
+              paymentHistoryData.forEach(account => {
+                    account.Transactions.forEach(transaction => {
+                        const row = tableBody.insertRow();
+                        row.innerHTML = `
+                            <td>${transaction.id}</td>
+                            <td>${transaction.beneficiary_name}</td>
+                            <td>${transaction.account_no}</td>
+                            <td>${transaction.amount}</td>
+                            <td>${transaction.status}</td>
+                            <td>${transaction.reference}</td>
+                            <td>${transaction.reason}</td>
+                            <td>${new Date(transaction.createdAt).toLocaleString()}</td>
+                        `;
+                    });
+                });
           } catch (error) {
               console.error('Error:', error.message);
           }

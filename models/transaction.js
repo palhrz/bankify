@@ -27,6 +27,7 @@ module.exports = (sequelize, DataTypes) => {
     reference: DataTypes.STRING,
     amount: DataTypes.INTEGER,
     sender: DataTypes.INTEGER,
+    account_id: DataTypes.INTEGER,
     time: {type: DataTypes.DATE, defaultValue: sequelize.fn('NOW') }
     },
     {

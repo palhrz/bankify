@@ -23,8 +23,8 @@
 
            <!-- Navigation -->
            <nav class="navigation">
-             <li><a href="Dashboard.html">Dashboard</a></li>
-             <li><a href="payment_history.html">Payment History</a></li>
+             <li><a href="/dashboard">Dashboard</a></li>
+             <li><a href="/payment">Payment History</a></li>
              <li><a href="">Transaction History</a></li>
            </nav>
            <!-- End Of Navigation -->
@@ -44,7 +44,7 @@
         <!-- End of Container-->
     </header>   
     <!-- Transaction History Table -->
-    <table class="table text-center">
+    <table class="table text-center" id="trxHistoryTable">
         <tr>
             <th>Transaction ID</th>
             <th>Account Number</th>
@@ -59,7 +59,66 @@
     </table>
 
 
+<script>
+   document.addEventListener("DOMContentLoaded", async function () {
+          const urlSearchParams = new URLSearchParams(window.location.search);
+          const userId = urlSearchParams.get('id');
+          const navigationLinks = document.querySelectorAll('.navigation a');
+          navigationLinks.forEach(link => {
+              const href = link.getAttribute('href');
+              link.setAttribute('href', `${href}?id=${userId}`);
+          });
+          try {
+              // Fetch payment history data
+              const response = await fetch(`http://localhost:9000/api/tranxById/${userId}`);
+              if (!response.ok) {
+                  throw new Error('Failed to fetch payment history');
+              }
 
+              const paymentHistoryData = await response.json();
+              console.log(paymentHistoryData);
+
+              // Reference to the table body
+              const tableBody = document.getElementById('trxHistoryTable').getElementsByTagName('tbody')[0];
+              const formatter = new Intl.DateTimeFormat("en-GB", {
+                                          year: "numeric",
+                                          month: "long",
+                                          day: "2-digit"
+                                       });
+              // Populate the table rows dynamically
+              paymentHistoryData.forEach(account => {
+                    account.Transactions.forEach(transaction => {
+                        console.log(transaction.createdAt);
+                        const row = tableBody.insertRow();
+                        const isoDate = new Date(transaction.createdAt);
+
+                        // Format the date as YYYY-MM-DD HH:MM
+                        const formattedDate = isoDate.toLocaleString('en-GB', {
+                           year: 'numeric',
+                           month: '2-digit',
+                           day: '2-digit',
+                           hour: '2-digit',
+                           minute: '2-digit',
+                           hour12: false, // Use 24-hour format
+                        });
+                        console.log(formattedDate);
+                        row.innerHTML = `
+                            <td>${transaction.id}</td>
+                            <td>${transaction.account_no}</td>
+                            <td>${transaction.type}</td>
+                            <td>${transaction.amount}</td>
+                            <td>${transaction.sender}</td>
+                            <td>${transaction.status}</td>
+                            <td>${transaction.reason}</td>
+                            <td>${formattedDate}</td>
+                        `;
+                    });
+                });
+          } catch (error) {
+              console.error('Error:', error.message);
+          }
+      });
+</script>
     
 </body>
 </html>

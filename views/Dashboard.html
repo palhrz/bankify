@@ -23,7 +23,7 @@
 
            <!-- Navigation -->
            <nav class="navigation">
-             <li><a href="/dashboard">Dashboard</a></li>
+             <li><a href="">Dashboard</a></li>
              <li><a href="/payment">Payment History</a></li>
              <li><a href="/history">Transaction History</a></li>
            </nav>
@@ -160,7 +160,7 @@
               
                  <!-- Form Group -->
                    <div class="form-group mb-2">
-                      <button id="" class="btn btn-md transact-btn">Transfer</button>
+                      <button id="transferButton" class="btn btn-md transact-btn">Transfer</button>
                    </div>
                   <!-- End Of Form Group -->
                 </div>
@@ -454,49 +454,7 @@
               });
           });
           
-          //listener to transfer beneficiary beneSelect
-          // const transferButton = document.getElementById('transferButton');
-          // const benef = document.querySelector('input[name="account_bene"]').value;
-          // const sender = document.querySelector('input[name="account_sender"]').value;
-          // // const paymentAmount = document.querySelector('input[name="payment_amount"]').value;
-          // const trfAmount = document.querySelector('input[name="transfer_amount"]').value;
-
-          // transferButton.addEventListener('click', async () => {
-
-          //     // Check if all required fields are filled
-          //     if (!selectedAccount || !transferAmount) {
-          //         alert('Please fill in all required fields');
-          //         return;
-          //     }
-
-          //     try {
-          //         const response = await fetch('/api/transfer', {
-          //             method: 'POST',
-          //             headers: {
-          //                 'Content-Type': 'application/json',
-          //             },
-          //             body: JSON.stringify({
-          //                 account_no: benef,
-          //                 sender: sender,
-          //                 amount: trfAmount,
-          //                 user_id: userId
-          //             }),
-          //         });
-
-          //         if (!response.ok) {
-          //             throw new Error('Failed to initiate transfer');
-          //         }
-
-          //         const responseData = await response.json();
-          //         // Handle the success response here
-          //         console.log('Transfer initiated successfully:', responseData);
-          //         alert('Transfer initiated successfully');
-          //     } catch (error) {
-          //         // Handle errors here
-          //         console.error('Error initiating transfer:', error.message);
-          //         alert('Failed to initiate transfer. Please try again.');
-          //     }
-          // });
+          
           // Calculate total balance
           const totalBalance = userData.Accounts.reduce((acc, account) => acc + account.balance, 0);
           document.getElementById('totalBalance').innerText = totalBalance.toFixed(2);
@@ -588,6 +546,49 @@
                     alert("Account already exists");
                     location.reload();
                 });
+        });
+        // listener to transfer beneficiary beneSelect
+        const transferButton = document.getElementById('transferButton');
+        const benef = document.querySelector('input[name="account_bene"]').value;
+        const sender = document.querySelector('input[name="account_sender"]').value;
+        // const paymentAmount = document.querySelector('input[name="payment_amount"]').value;
+        const trfAmount = document.querySelector('input[name="transfer_amount"]').value;
+
+        transferButton.addEventListener('click', async () => {
+
+            // Check if all required fields are filled
+            if (!sender || !trfAmount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/transfer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        account_no: benef,
+                        sender: sender,
+                        amount: trfAmount,
+                        user_id: userId
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to initiate transfer');
+                }
+
+                const responseData = await response.json();
+                // Handle the success response here
+                console.log('Transfer initiated successfully:', responseData);
+                alert('Transfer initiated successfully');
+            } catch (error) {
+                // Handle errors here
+                console.error('Error initiating transfer:', error.message);
+                alert('Failed to initiate transfer. Please try again.');
+            }
         });
     </script>  
 </body>

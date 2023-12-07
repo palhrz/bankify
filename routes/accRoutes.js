@@ -10,12 +10,18 @@ module.exports = function(app) {
 
     app.route('/api/getAccount')
         .get(accApi.getAllAccount);
+        
+    app.route('/api/getTrx')
+        .get(accApi.getAllTrx);
 
     app.route('/api/createAccount')
         .post(accApi.createAccount);
 
     app.route('/api/transfer')
         .post(accApi.transfer_money);
+
+    app.route('/api/payment')
+        .post(accApi.payment);
 
     app.route('/api/withdraw')
         .post(accApi.withdraw_money);
@@ -30,8 +36,10 @@ module.exports = function(app) {
         .get(accApi.accByUserId);
 
     app.route('/api/tranxById/:user_id')
-        .get(accApi.getByUserId);
-        //test this
+        .get(accApi.tranxByUserId);
+    
+    app.route('/api/paymentById/:user_id')
+        .get(accApi.payment_by_UserId);
 
     app.route('/api/deposit')
         .post(accApi.deposit_funds);

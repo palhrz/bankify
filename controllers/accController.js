@@ -15,6 +15,15 @@ exports.getAllAccount = async function (req, res) {
         res.status(500).json({ message: error.message });
     }
 };
+ 
+exports.getAllTrx = async function (req, res) {
+    try {
+        const trx = await Transaction.findAll();
+        res.json(trx);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
   
 // changed to get balance by accNo
 exports.getByAccNo = async function (req, res) {
@@ -69,7 +78,7 @@ exports.accByUserId = async function (req, res) {
     }
 };
 
-exports.getByUserId = async function (req, res) {
+exports.tranxByUserId = async function (req, res) {
     try {
         const userId = req.params.user_id; // assuming user_id is provided in the request params
 
@@ -78,7 +87,31 @@ exports.getByUserId = async function (req, res) {
             where: { user_id: userId },
             include: [{
                 model: Transaction,
-                attributes: ['account_no', 'beneficiary_name', 'type', 'amount', 'reference', 'status', 'reason'],
+                // attributes: ['beneficiary_name', 'account_no', 'beneficiary_name', 'type', 'amount', 'reference', 'status', 'reason','createdAt'],
+            }],
+        });
+
+        if (!userAccounts || userAccounts.length === 0) {
+            return res.status(404).send(`User with ID ${userId} does not have any associated accounts`);
+        }
+
+        res.json(userAccounts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.payment_by_UserId = async function (req, res) {
+    try {
+        const userId = req.params.user_id; 
+
+        // Find all accounts for the user including associated transactions
+        const userAccounts = await Account.findAll({
+            where: { user_id: userId },
+            include: [{
+                model: Transaction,
+                where: { type: 'Payment' }, // Filter transactions with type==='Payment'
+                attributes: ['beneficiary_name', 'account_no', 'type', 'amount', 'reference', 'status', 'reason', 'createdAt'],
             }],
         });
 
@@ -146,14 +179,24 @@ exports.createAccount = async function (req, res) {
 exports.deposit_funds = async function(req, res) {
     try {
         const { account_no, amount } = req.body;
-        if (!(account_no && amount )) {
+        if (!(account_no && amount)) {
             res.status(400).send("All input are required");
         }
         let acc = await Account.findOne({ where: { account_no } });
         if (acc === null) {
             res.status(404).send(`This User with account number ${account_no} does not exist`);
         }
+        console.log(acc);
         if (amount < 10) {
+            let transactionDetails = {
+                type: 'Deposit',
+                account_no: account_no,
+                amount: amount,
+                status: 'failed',
+                reason: 'Deposit amount less than 10',
+                account_id: acc.id
+            };
+            await Transaction.create(transactionDetails)
             res.status(400).send(`Sorry, deposit amount cannot be less than 10`);
         }
         if (amount >= 10) {
@@ -161,8 +204,10 @@ exports.deposit_funds = async function(req, res) {
             let transactionDetails = {
                 type: 'Deposit',
                 account_no: account_no,
-                amount: amount
-                // account_id: acc_id
+                amount: amount,
+                status: 'success',
+                reason: 'Deposit successful',
+                account_id: acc.id
             };
             await acc.save();
             console.log('saved');
@@ -178,31 +223,32 @@ exports.deposit_funds = async function(req, res) {
 //make corection, add reference. desc change to reason. add benefeciary name
 exports.payment = async function(req, res) {
     try {
-        const { account_no, amount, description, sender, reference, user_id } = req.body;
+        const { account_no, amount, sender, reference, user_id } = req.body;
 
-        if (!(account_no && amount && sender && description && reference)) {
+        if (!(account_no && amount && sender && reference)) {
             return res.status(400).send("All input fields are required");
         }
 
         // Find the beneficiary based on the provided account number
         const beneficiary = await Account.findOne({ where: { account_no } });
-
+        const senderAccount = await Account.findOne({ where: { account_no: sender } });
         if (!beneficiary) {
             const transactionDetails = {
                 type: 'Payment',
                 account_no,
                 status: 'failed',
-                reason: 'nonexisted', // Add a description if needed
+                reason: 'Beneficiary acc not exist', // Add a description if needed
                 reference: reference,
-                sender: senderAccount.account_no,
+                sender: sender,
                 amount: amount,
+                account_id: senderAccount.id,
             };
     
             await Transaction.create(transactionDetails);
             return res.status(400).send("User with this account number does not exist");
         }
         // Find the current user based on the user_id from the request
-        const senderAccount = await Account.findOne({ where: { account_no: sender } });
+        
 
         if (!senderAccount) {
             return res.status(400).send("Sender account not found");
@@ -210,19 +256,32 @@ exports.payment = async function(req, res) {
 
         // Check if the transfer is between the user's own accounts
         if (senderAccount.account_no === beneficiary.account_no) {
+            const transactionDetails = {
+                type: 'Payment',
+                account_no,
+                status: 'failed',
+                reason: 'Same account number', // Add a description if needed
+                reference: reference,
+                sender: senderAccount.account_no,
+                amount: amount,
+                account_id: senderAccount.id,
+            };
+    
+            await Transaction.create(transactionDetails);
             return res.status(400).send("You cannot make payment to the same account");
         }
 
         if (amount > senderAccount.balance || amount <= 0) {
             
             const transactionDetails = {
-                type: 'Transfer',
+                type: 'Payment',
                 account_no,
-                status: 'success',
-                reason: 'insufficient',
+                status: 'failed',
+                reason: 'Insufficient balance',
                 reference: reference,
                 sender: senderAccount.account_no,
                 amount: amount,
+                account_id: senderAccount.id,
             };
     
             await Transaction.create(transactionDetails);
@@ -239,12 +298,14 @@ exports.payment = async function(req, res) {
 
         // Create a transaction record
         const transactionDetails = {
-            type: 'Transfer',
+            type: 'Payment',
             account_no,
             status: 'Success',
+            reason: 'Payment successful',
             reference: reference,
             sender: senderAccount.account_no,
             amount: amount,
+            account_id: senderAccount.id,
         };
 
         await Transaction.create(transactionDetails);
@@ -278,6 +339,17 @@ exports.transfer_money = async function(req, res) {
 
         // Check if the transfer is between the user's own accounts
         if (senderAccount.account_no === beneficiary.account_no) {
+            const transactionDetails = {
+                type: 'Transfer',
+                account_no,
+                status: 'failed',
+                reason: 'Same account number',
+                sender: senderAccount.account_no,
+                amount: amount,
+                account_id: beneficiary.id,
+            };
+    
+            await Transaction.create(transactionDetails);
             return res.status(400).send("You cannot transfer money to the same account");
         }
 
@@ -286,10 +358,11 @@ exports.transfer_money = async function(req, res) {
             const transactionDetails = {
                 type: 'Transfer',
                 account_no,
-                status: 'Insufficient',
-                // description: 'Some description here', // Add a description if needed
+                status: 'failed',
+                reason: 'Insufficient balance',
                 sender: senderAccount.account_no,
                 amount: amount,
+                account_id: beneficiary.id,
             };
     
             await Transaction.create(transactionDetails);
@@ -308,10 +381,11 @@ exports.transfer_money = async function(req, res) {
         const transactionDetails = {
             type: 'Transfer',
             account_no,
-            status: 'Success',
-            // description: 'Some description here', // Add a description if needed
+            status: 'success',
+            reason: 'Transfer successful',
             sender: senderAccount.account_no,
             amount: amount,
+            account_id: beneficiary.id
         };
 
         await Transaction.create(transactionDetails);
@@ -336,15 +410,17 @@ exports.withdraw_money = async function(req, res) {
         }
         senderAccount.balance = senderAccount.balance - withdrawAmount;
         let transactionDetails = {
-            transactionType: 'Withdraw',
+            type: 'Withdraw',
             sender: senderAccount.account_no,
+            status: 'success',
+            reason: 'Withdrawal successful',
             description: `Withdrawal of ${formatter.format(withdrawAmount)}`,
             //sender: currentUser.accountNumber,
             amount: withdrawAmount
         };
-        await currentUser.save();
+        await senderAccount.update({ balance: senderAccount.balance });
         await Transaction.create(transactionDetails);
-        res.status(200).send(`Withdrawal of ${formatter.format(withdrawAmount)} was successful`);
+        res.status(200).send(`Withdrawal of ${formatter.format(withdrawAmount)} from ${sender} was successful`);
     } catch (e) {
         res.json({ message: e });
     }
