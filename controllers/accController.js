@@ -111,7 +111,7 @@ exports.payment_by_UserId = async function (req, res) {
             include: [{
                 model: Transaction,
                 where: { type: 'Payment' }, // Filter transactions with type==='Payment'
-                attributes: ['beneficiary_name', 'account_no', 'type', 'amount', 'reference', 'status', 'reason', 'createdAt'],
+                // attributes: ['beneficiary_name', 'account_no', 'type', 'amount', 'reference', 'status', 'reason', 'createdAt'],
             }],
         });
 
@@ -223,7 +223,7 @@ exports.deposit_funds = async function(req, res) {
 //make corection, add reference. desc change to reason. add benefeciary name
 exports.payment = async function(req, res) {
     try {
-        const { account_no, amount, sender, reference, user_id } = req.body;
+        const { name, account_no, amount, sender, reference, user_id } = req.body;
 
         if (!(account_no && amount && sender && reference)) {
             return res.status(400).send("All input fields are required");
@@ -234,6 +234,7 @@ exports.payment = async function(req, res) {
         const senderAccount = await Account.findOne({ where: { account_no: sender } });
         if (!beneficiary) {
             const transactionDetails = {
+                beneficiary_name: name,
                 type: 'Payment',
                 account_no,
                 status: 'failed',
@@ -257,6 +258,7 @@ exports.payment = async function(req, res) {
         // Check if the transfer is between the user's own accounts
         if (senderAccount.account_no === beneficiary.account_no) {
             const transactionDetails = {
+                beneficiary_name: name,
                 type: 'Payment',
                 account_no,
                 status: 'failed',
@@ -274,6 +276,7 @@ exports.payment = async function(req, res) {
         if (amount > senderAccount.balance || amount <= 0) {
             
             const transactionDetails = {
+                beneficiary_name: name,
                 type: 'Payment',
                 account_no,
                 status: 'failed',
@@ -298,6 +301,7 @@ exports.payment = async function(req, res) {
 
         // Create a transaction record
         const transactionDetails = {
+            beneficiary_name: name,
             type: 'Payment',
             account_no,
             status: 'Success',
@@ -406,7 +410,7 @@ exports.withdraw_money = async function(req, res) {
         }
         let senderAccount = await Account.findOne({ where: { account_no: sender } });
         if (withdrawAmount > senderAccount.balance) {
-            res.status(400).send("Insufficient funds to make this withdrawal");
+            res.status(402).send("Insufficient funds to make this withdrawal");
         }
         senderAccount.balance = senderAccount.balance - withdrawAmount;
         let transactionDetails = {

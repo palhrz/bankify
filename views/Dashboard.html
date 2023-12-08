@@ -37,7 +37,7 @@
 
            <!-- Log Out Button -->
            <a href="" class="btn btn-sm text-white ms-4">
-              <i class="fa fa-sign-out-alt"></i> <a href="Login.html" class="btn btn-sm text-white">Sign Out</a>
+              <i class="fa fa-sign-out-alt"></i> <a href="/login" class="btn btn-sm text-white">Sign Out</a>
            </a>
            <!-- End Of Log Out Button -->
         </div>
@@ -179,7 +179,7 @@
                         <!-- Form Group -->
                         <div class="form-group mb-2">
                            <label for="">  Enter Deposit Amount</label>
-                           <input type="text" name="deposit_amount" class="form-control" placeholder = "Enter Deposit Amount">
+                           <input type="text" name="depo_amount" class="form-control" placeholder = "Enter Deposit Amount">
                        </div>
                        <!-- End Of Form Group -->                
 
@@ -188,7 +188,7 @@
                         <div class="form-group">
                            <label for="">Select Account</label>
                            <!-- Select Account Option -->
-                           <select name="account_id" class="form-control account-select" id="accountSelect">
+                           <select name="account_depo" class="form-control account-select" id="accountSelect">
                                 <option value="">-- Select Account --</option>
                            </select>
                            <!-- End Of Select Account Option -->
@@ -197,7 +197,7 @@
          
                       <!-- Form Group -->
                       <div class="form-group my-2">
-                          <button id="" class="btn btn-md transact-btn">Deposit</button>
+                          <button id="depoBtn" class="btn btn-md transact-btn">Deposit</button>
                       </div>
                       <!-- End Of Form Group -->
 
@@ -229,7 +229,7 @@
                         <div class="form-group">
                            <label for="">Select Account</label>
                            <!-- Select Account Option -->
-                           <select name="account_id" class="form-control account-select" id="accountSelect">
+                           <select name="account_wdraw" class="form-control account-select" id="accountSelect">
                                 <option value="">-- Select Account --</option>
                            </select>
                            <!-- End Of Select Account Option -->
@@ -238,7 +238,7 @@
          
                       <!-- Form Group -->
                       <div class="form-group my-2">
-                          <button id="" class="btn btn-md transact-btn">Withdraw</button>
+                          <button id="wdrawBtn" class="btn btn-md transact-btn">Withdraw</button>
                       </div>
                       <!-- End Of Form Group -->
 
@@ -383,7 +383,9 @@
           });
           
           if (!userId) {
+            alert('You need to sign in to view this page');
             throw new Error('User ID not found in the URL');
+            location.href = '/index';
           }
     
           const response = await fetch(`http://localhost:9000/api/user/${userId}`);
@@ -436,7 +438,8 @@
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                account_no: beneficiary,
+                name: beneficiary,
+                account_no: accountNumber,
                 sender: selectedAccount,
                 amount: paymentAmount,
                 description: reference,
@@ -578,6 +581,93 @@
 
                 if (!response.ok) {
                     throw new Error('Failed to initiate transfer');
+                }
+
+                const responseData = await response.json();
+                // Handle the success response here
+                console.log('Transfer initiated successfully:', responseData);
+                alert('Transfer initiated successfully');
+            } catch (error) {
+                // Handle errors here
+                console.error('Error initiating transfer:', error.message);
+                alert('Failed to initiate transfer. Please try again.');
+            }
+        });
+
+        // listener to withdraw 
+        const wdrawButton = document.getElementById('wdrawBtn');
+        const wdaracc = document.querySelector('input[name="account_wdraw"]').value;
+        const wdrawAmount = document.querySelector('input[name="withdraw_amount"]').value;
+
+        wdrawButton.addEventListener('click', async () => {
+
+            // Check if all required fields are filled
+            if (!wdaracc || !wdrawAmount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sender: wdaracc,
+                        amount: wdrawAmount
+                    }),
+                });
+
+                if (!response.ok) {
+                    if (response.status === 402) {
+                      alert('Insufficient balance');
+                      throw new Error('Failed to initiate withdraw');
+                    }
+                    throw new Error('Failed to initiate withdraw');
+                }
+
+                const responseData = await response.json();
+                // Handle the success response here
+                console.log('Transfer initiated successfully:', responseData);
+                alert('Transfer initiated successfully');
+            } catch (error) {
+                // Handle errors here
+                console.error('Error initiating transfer:', error.message);
+                alert('Failed to initiate transfer. Please try again.');
+            }
+        });
+
+        const depoButton = document.getElementById('depoBtn');
+        const depoacc = document.querySelector('input[name="account_depo"]').value;
+        const depoAmount = document.querySelector('input[name="depo_amount"]').value;
+
+        depoButton.addEventListener('click', async () => {
+
+            // Check if all required fields are filled
+            if (!depoacc || !depoAmount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sender: senwdaraccder,
+                        amount: wdrawAmount
+                    }),
+                });
+
+                if (!response.ok) {
+                    if (response.status === 402) {
+                      alert('Insufficient balance');
+                      throw new Error('Failed to initiate withdraw');
+                    }
+                    throw new Error('Failed to initiate withdraw');
                 }
 
                 const responseData = await response.json();
