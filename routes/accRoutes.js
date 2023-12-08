@@ -42,5 +42,5 @@ module.exports = function(app) {
         .get(accApi.payment_by_UserId);
 
     app.route('/api/deposit')
-        .post(accApi.deposit_funds);
+        .post(accApi.deposit);
 };

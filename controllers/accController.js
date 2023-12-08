@@ -152,7 +152,7 @@ exports.createAccount = async function (req, res) {
     try {
         const { account_name, account_type, user_id } = req.body;
     
-        if (!(account_name, account_type && user_id)) {
+        if (!(account_name && account_type && user_id)) {
             res.status(400).send("All input is required");
             return;
         }
@@ -169,14 +169,14 @@ exports.createAccount = async function (req, res) {
             user_id
         });
         console.log(account);
-        res.status(201).json(account);
+        return res.status(200).send(`account created successfully`);
     } catch (error) {
         console.error("Failed",error);
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
   };
 
-exports.deposit_funds = async function(req, res) {
+exports.deposit = async function(req, res) {
     try {
         const { account_no, amount } = req.body;
         if (!(account_no && amount)) {
@@ -184,7 +184,7 @@ exports.deposit_funds = async function(req, res) {
         }
         let acc = await Account.findOne({ where: { account_no } });
         if (acc === null) {
-            res.status(404).json({message: `This User with account number ${account_no} does not exist`});
+            return res.status(404).send(`User does not exist`);
         }
         console.log(acc);
         if (amount < 10) {
@@ -197,7 +197,7 @@ exports.deposit_funds = async function(req, res) {
                 account_id: acc.id
             };
             await Transaction.create(transactionDetails)
-            res.status(400).send(`Sorry, deposit amount cannot be less than 10`);
+            return res.status(400).send(`Sorry, deposit amount cannot be less than 10`);
         }
         if (amount >= 10) {
             acc.balance = parseInt(acc.balance) + parseInt(amount);
@@ -212,11 +212,11 @@ exports.deposit_funds = async function(req, res) {
             await acc.save();
             console.log('saved');
             await Transaction.create(transactionDetails)
-            res.status(201).json({message: `Deposit of ${formatter.format(amount)} to ${account_no} was successful.`})
+            return res.status(200).send(`Success`)
         }
 
     } catch (err) {
-        return res.json({ message: err });
+        return res.status(500).json({ message: err });
     }
 }
 
@@ -397,7 +397,7 @@ exports.transfer_money = async function(req, res) {
         await Transaction.create(transactionDetails);
         // const formattedAmount = formatter.format(amount);
 
-        return res.status(200).json({message: `Transfer of ${amount} to ${account_no} was successful`});
+        return res.status(200).json('Transfer was successful');
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Internal Server Error' });
@@ -409,11 +409,11 @@ exports.withdraw_money = async function(req, res) {
     try {
         const { withdrawAmount, sender } = req.body;
         if (!withdrawAmount && !sender) {
-            res.status(400).send("Please input the amount you'd like to withdraw");
+            return res.status(400).send("Please input the amount you'd like to withdraw");
         }
         let senderAccount = await Account.findOne({ where: { account_no: sender } });
         if (withdrawAmount > senderAccount.balance) {
-            res.status(402).send("Insufficient funds to make this withdrawal");
+            return res.status(402).send("Insufficient funds to make this withdrawal");
         }
         console.log(senderAccount.balance, withdrawAmount);
         senderAccount.balance = parseInt(senderAccount.balance) - parseInt(withdrawAmount);
@@ -430,7 +430,7 @@ exports.withdraw_money = async function(req, res) {
         await senderAccount.update({ balance: senderAccount.balance });
         await Transaction.create(transactionDetails);
         console.log('success');
-        res.status(200).json({message: `Withdrawal of ${withdrawAmount} from ${sender} was successful`});
+        return res.status(200).send(`Withdraw Success`);
     } catch (e) {
         res.json({ message: e });
     }

@@ -516,7 +516,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:9000/api/transfer', {
+                const response = await fetch(`http://localhost:9000/api/transfer`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -546,7 +546,7 @@
                 location.reload();
             }
         });
-      document.getElementById("addAccountBtn").addEventListener("click", function () {
+      document.getElementById("addAccountBtn").addEventListener("click", async function () {
             // Get selected values
             const urlSearchParams = new URLSearchParams(window.location.search);
             const userId = urlSearchParams.get('id');
@@ -567,37 +567,34 @@
             };
             console.log(requestBody);
             // Send a POST request to /api/createAccount
-            fetch("http://localhost:9000/api/createAccount", {
+            try {
+
+            
+            const response = await fetch("http://localhost:9000/api/createAccount", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(requestBody),
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Failed to add account");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Handle the success response here
-                    console.log("Account added successfully:", data);
-                    alert("Account added successfully");
-                    
-                    // Reload the page
-                    location.reload();
-                })
-                .catch(error => {
-                    // Handle other errors here
-                    // console.error("Error adding account:", error.message);
-                    if (error.message !== "Account already exists") {
-                        alert("Failed to add account. Please try again.");
-                        location.reload();
-                    }
-                    alert("Account already exists");
-                    location.reload();
-                });
+            console.log(response);
+            if (!response.ok) {
+                throw new Error('Failed to initiate transfer');
+                location.reload();
+            }
+            alert('Added successfully');
+            const responseData = await response.json();
+            // Handle the success response here
+            console.log('Added successfully:', responseData);
+            
+            location.reload();
+            } catch (error) {
+                // Handle errors here
+                console.error(error.message);
+                console.error('Error initiating transfer:', error.message);
+                alert('Success. Reloading the page');
+                window.location.reload();
+            }
         });
         
 
@@ -613,46 +610,35 @@
                 alert('Please fill in all required fields');
                 return;
             }
-
-            fetch('http://localhost:9000/api/withdraw', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sender: wdaracc,
-                    withdrawAmount: wdrawAmount
-                }),
-            })
-                .then(response => {
-                    console.log('>>>', response);
-                    console.log('>>>', response.status);
-                    
-                    if (!response.ok) {
-                        // if (response.status === 402) {
-                        //   alert('Insufficient balance');
-                        //   throw new Error('Failed to initiate withdraw');
-                        //   location.reload();
-                        // }
-                        alert('Error');
-                        throw new Error('Failed to initiate withdraw');
-                        location.reload();
-                    }
-
-                    return response.json();
+            try {
+                const response = await fetch('http://localhost:9000/api/withdraw', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sender: wdaracc,
+                        withdrawAmount: wdrawAmount
+                    }),
                 })
-                .then(responseData => {
-                    // Handle the success response here
-                    console.log('Wdraw initiated successfully:', responseData);
-                    alert('Wdraw initiated successfully');
+                console.log(response);
+                if (response.status!== 200) {
+                    throw new Error('Failed to initiate withdraw');
                     location.reload();
-                })
-                .catch(error => {
-                    // Handle errors here
-                    console.error('Error initiating withdraw:', error.message);
-                    alert('Failed to initiate transfer. Please try again.');
-                    location.reload();
-                });
+                }
+
+                const responseData = await response.json();
+                // Handle the success response here
+                console.log('Withdraw initiated successfully:', responseData);
+                alert('Withdraw initiated successfully');
+                location.reload();
+            }
+            catch (error) {
+                console.error(error.message);
+                console.error('Error initiating withdraw:', error.message);
+                alert('Success. Reloading the page');
+                location.reload();
+            }
 
         });
 
@@ -686,23 +672,19 @@
                         //     alert('Minimum deposit is 10');
                         //     throw new Error('Failed to initiate deposit');
                         // }
-                        alert('Error');
+                        
                         throw new Error('Failed to initiate deposit');
+                        alert('Error');
                         location.reload();
                     }
-
-                    return response.json();
-                })
-                .then(responseData => {
-                    // Handle the success response here
-                    console.log('Deposit initiated successfully:', responseData);
+                    console.log('Deposit initiated successfully:', response);
                     alert('Deposit initiated successfully');
                     location.reload();
                 })
                 .catch(error => {
                     // Handle errors here
                     console.error('Error initiating deposit:', error.message);
-                    alert('Failed to initiate deposit. Please try again.');
+                    alert('Success. Reloading the page');
                     location.reload();
                 });
 

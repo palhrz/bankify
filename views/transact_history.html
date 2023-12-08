@@ -50,7 +50,7 @@
             <th>Account Number</th>
             <th>Transaction Type</th>
             <th>Amount</th>
-            <th>From</th>
+            <th>Beneficiary</th>
             <th>Status</th>
             <th>Reason Code</th>
             <th>Created at</th>
@@ -119,10 +119,10 @@
                         console.log(formattedDate);
                         row.innerHTML = `
                             <td>${transaction.id}</td>
-                            <td>${transaction.account_no}</td>
+                            <td>${transaction.sender}</td>
                             <td>${transaction.type}</td>
                             <td>${transaction.amount}</td>
-                            <td>${transaction.sender}</td>
+                            <td>${transaction.account_no}</td>
                             <td>${transaction.status}</td>
                             <td>${transaction.reason}</td>
                             <td>${formattedDate}</td>
