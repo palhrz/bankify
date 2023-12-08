@@ -179,7 +179,7 @@
                         <!-- Form Group -->
                         <div class="form-group mb-2">
                            <label for="">  Enter Deposit Amount</label>
-                           <input type="text" name="depo_amount" class="form-control" placeholder = "Enter Deposit Amount" value="">
+                           <input type="text" name="depo_amount" id="depo_amount" class="form-control" placeholder = "Enter Deposit Amount" value="">
                        </div>
                        <!-- End Of Form Group -->                
 
@@ -188,7 +188,7 @@
                         <div class="form-group">
                            <label for="">Select Account</label>
                            <!-- Select Account Option -->
-                           <select name="account_depo" class="form-control account-select" id="accountSelect">
+                           <select name="account_depo" class="form-control account-select" id="account_depo">
                                 <option value="">-- Select Account --</option>
                            </select>
                            <!-- End Of Select Account Option -->
@@ -220,7 +220,7 @@
                         <!-- Form Group -->
                         <div class="form-group mb-2">
                            <label for="">  Enter Withdraw Amount</label>
-                           <input type="text" name="withdraw_amount" class="form-control" placeholder = "Enter Withdraw Amount">
+                           <input type="text" name="withdraw_amount" id="withdraw_amount" class="form-control" placeholder = "Enter Withdraw Amount" value="">
                        </div>
                        <!-- End Of Form Group -->                
 
@@ -229,7 +229,7 @@
                         <div class="form-group">
                            <label for="">Select Account</label>
                            <!-- Select Account Option -->
-                           <select name="account_wdraw" class="form-control account-select" id="accountSelect">
+                           <select name="account_wdraw" class="form-control account-select" id="account_wdraw">
                                 <option value="">-- Select Account --</option>
                            </select>
                            <!-- End Of Select Account Option -->
@@ -530,17 +530,20 @@
                 console.log(response);
                 if (response.status!== 200) {
                     throw new Error('Failed to initiate transfer');
+                    location.reload();
                 }
 
                 const responseData = await response.json();
                 // Handle the success response here
                 console.log('Transfer initiated successfully:', responseData);
                 alert('Transfer initiated successfully');
+                location.reload();
             } catch (error) {
                 // Handle errors here
                 console.error(error.message);
                 console.error('Error initiating transfer:', error.message);
                 alert('Failed to initiate transfer. Please try again.');
+                location.reload();
             }
         });
       document.getElementById("addAccountBtn").addEventListener("click", function () {
@@ -564,7 +567,7 @@
             };
             console.log(requestBody);
             // Send a POST request to /api/createAccount
-            fetch("/api/createAccount", {
+            fetch("http://localhost:9000/api/createAccount", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -601,88 +604,108 @@
         // listener to withdraw 
         const wdrawButton = document.getElementById('wdrawBtn');
         wdrawButton.addEventListener('click', async () => {
-            const wdaracc = document.querySelector('input[name="account_wdraw"]').value;
-            const wdrawAmount = document.querySelector('input[name="withdraw_amount"]').value;
+            const wdaracc = document.getElementById("account_wdraw").value;
+            const wdrawAmount = document.getElementById("withdraw_amount").value;
 
-        
-
+            console.log(wdaracc, wdrawAmount);
             // Check if all required fields are filled
             if (!wdaracc || !wdrawAmount) {
                 alert('Please fill in all required fields');
                 return;
             }
 
-            try {
-                const response = await fetch('/api/withdraw', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        sender: wdaracc,
-                        amount: wdrawAmount
-                    }),
+            fetch('http://localhost:9000/api/withdraw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    sender: wdaracc,
+                    withdrawAmount: wdrawAmount
+                }),
+            })
+                .then(response => {
+                    console.log('>>>', response);
+                    console.log('>>>', response.status);
+                    
+                    if (!response.ok) {
+                        // if (response.status === 402) {
+                        //   alert('Insufficient balance');
+                        //   throw new Error('Failed to initiate withdraw');
+                        //   location.reload();
+                        // }
+                        alert('Error');
+                        throw new Error('Failed to initiate withdraw');
+                        location.reload();
+                    }
+
+                    return response.json();
+                })
+                .then(responseData => {
+                    // Handle the success response here
+                    console.log('Wdraw initiated successfully:', responseData);
+                    alert('Wdraw initiated successfully');
+                    location.reload();
+                })
+                .catch(error => {
+                    // Handle errors here
+                    console.error('Error initiating withdraw:', error.message);
+                    alert('Failed to initiate transfer. Please try again.');
+                    location.reload();
                 });
 
-                if (!response.ok) {
-                    if (response.status === 402) {
-                      alert('Insufficient balance');
-                      throw new Error('Failed to initiate withdraw');
-                    }
-                    throw new Error('Failed to initiate withdraw');
-                }
-
-                const responseData = await response.json();
-                // Handle the success response here
-                console.log('Transfer initiated successfully:', responseData);
-                alert('Transfer initiated successfully');
-            } catch (error) {
-                // Handle errors here
-                console.error('Error initiating transfer:', error.message);
-                alert('Failed to initiate transfer. Please try again.');
-            }
         });
 
+        //listener deposit
         const depoButton = document.getElementById('depoBtn');
         depoButton.addEventListener('click', async () => {
-            const depoacc = document.querySelector('input[name="account_depo"]').text;
-            const depoAmount = document.querySelector('input[name="depo_amount"]').value;
-
+            const depoacc = document.getElementById("account_depo").value;
+            const depoAmount = document.getElementById("depo_amount").value;
             // Check if all required fields are filled
             if (!depoacc || !depoAmount) {
                 alert('Please fill in all required fields');
                 return;
             }
 
-            try {
-                const response = await fetch('/api/withdraw', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        sender: senwdaraccder,
-                        amount: wdrawAmount
-                    }),
+            fetch('http://localhost:9000/api/deposit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    account_no: depoacc,
+                    amount: depoAmount
+                }),
+            })
+                .then(response => {
+                    console.log('>>>', response);
+                    console.log('>>>', response.status);
+
+                    if (!response.ok) {
+                        // if (response.status === 404) {
+                        //     alert('Minimum deposit is 10');
+                        //     throw new Error('Failed to initiate deposit');
+                        // }
+                        alert('Error');
+                        throw new Error('Failed to initiate deposit');
+                        location.reload();
+                    }
+
+                    return response.json();
+                })
+                .then(responseData => {
+                    // Handle the success response here
+                    console.log('Deposit initiated successfully:', responseData);
+                    alert('Deposit initiated successfully');
+                    location.reload();
+                })
+                .catch(error => {
+                    // Handle errors here
+                    console.error('Error initiating deposit:', error.message);
+                    alert('Failed to initiate deposit. Please try again.');
+                    location.reload();
                 });
 
-                if (!response.ok) {
-                    if (response.status === 402) {
-                      alert('Insufficient balance');
-                      throw new Error('Failed to initiate withdraw');
-                    }
-                    throw new Error('Failed to initiate withdraw');
-                }
-
-                const responseData = await response.json();
-                // Handle the success response here
-                console.log('Transfer initiated successfully:', responseData);
-                alert('Transfer initiated successfully');
-            } catch (error) {
-                // Handle errors here
-                console.error('Error initiating transfer:', error.message);
-                alert('Failed to initiate transfer. Please try again.');
-            }
         });
     </script>  
 </body>

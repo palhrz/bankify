@@ -184,13 +184,13 @@ exports.deposit_funds = async function(req, res) {
         }
         let acc = await Account.findOne({ where: { account_no } });
         if (acc === null) {
-            res.status(404).send(`This User with account number ${account_no} does not exist`);
+            res.status(404).json({message: `This User with account number ${account_no} does not exist`});
         }
         console.log(acc);
         if (amount < 10) {
             let transactionDetails = {
                 type: 'Deposit',
-                account_no: account_no,
+                sender: account_no,
                 amount: amount,
                 status: 'failed',
                 reason: 'Deposit amount less than 10',
@@ -200,10 +200,10 @@ exports.deposit_funds = async function(req, res) {
             res.status(400).send(`Sorry, deposit amount cannot be less than 10`);
         }
         if (amount >= 10) {
-            acc.balance = acc.balance + amount;
+            acc.balance = parseInt(acc.balance) + parseInt(amount);
             let transactionDetails = {
                 type: 'Deposit',
-                account_no: account_no,
+                sender: account_no,
                 amount: amount,
                 status: 'success',
                 reason: 'Deposit successful',
@@ -212,7 +212,7 @@ exports.deposit_funds = async function(req, res) {
             await acc.save();
             console.log('saved');
             await Transaction.create(transactionDetails)
-            res.status(201).send(`Deposit of ${formatter.format(amount)} to ${account_no} was successful.`)
+            res.status(201).json({message: `Deposit of ${formatter.format(amount)} to ${account_no} was successful.`})
         }
 
     } catch (err) {
@@ -415,19 +415,22 @@ exports.withdraw_money = async function(req, res) {
         if (withdrawAmount > senderAccount.balance) {
             res.status(402).send("Insufficient funds to make this withdrawal");
         }
-        senderAccount.balance = senderAccount.balance - withdrawAmount;
+        console.log(senderAccount.balance, withdrawAmount);
+        senderAccount.balance = parseInt(senderAccount.balance) - parseInt(withdrawAmount);
+        console.log(senderAccount.balance);
         let transactionDetails = {
             type: 'Withdraw',
             sender: senderAccount.account_no,
             status: 'success',
             reason: 'Withdrawal successful',
-            description: `Withdrawal of ${formatter.format(withdrawAmount)}`,
             //sender: currentUser.accountNumber,
-            amount: withdrawAmount
+            amount: withdrawAmount,
+            account_id: senderAccount.id
         };
         await senderAccount.update({ balance: senderAccount.balance });
         await Transaction.create(transactionDetails);
-        res.status(200).send(`Withdrawal of ${withdrawAmount} from ${sender} was successful`);
+        console.log('success');
+        res.status(200).json({message: `Withdrawal of ${withdrawAmount} from ${sender} was successful`});
     } catch (e) {
         res.json({ message: e });
     }
