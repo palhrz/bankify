@@ -322,14 +322,14 @@ exports.payment = async function(req, res) {
 }
 exports.transfer_money = async function(req, res) {
     try {
-        const { account_no, amount, sender, user_id } = req.body;
+        const { account_no, amount, sender } = req.body;
 
-        if (!(account_no && amount && sender && user_id)) {
+        if (!(account_no && amount && sender )) {
             return res.status(400).send("All input fields are required");
         }
 
         // Find the beneficiary based on the provided account number
-        const beneficiary = await Account.findOne({ where: { account_no } });
+        const beneficiary = await Account.findOne({ where: { account_no: account_no } });
 
         if (!beneficiary) {
             return res.status(400).send("User with this account number does not exist");
@@ -374,7 +374,9 @@ exports.transfer_money = async function(req, res) {
         }
 
         // Update beneficiary and current user account balances
-        beneficiary.balance += amount;
+        console.log(beneficiary.balance);
+        beneficiary.balance = parseInt(beneficiary.balance) + parseInt(amount);
+        console.log(beneficiary.balance);
         senderAccount.balance -= amount;
 
         // Save changes to the database
@@ -393,8 +395,9 @@ exports.transfer_money = async function(req, res) {
         };
 
         await Transaction.create(transactionDetails);
+        // const formattedAmount = formatter.format(amount);
 
-        return res.status(200).send(`Transfer of ${formatter.format(amount)} to ${account_no} was successful`);
+        return res.status(200).json({message: `Transfer of ${amount} to ${account_no} was successful`});
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Internal Server Error' });
@@ -424,7 +427,7 @@ exports.withdraw_money = async function(req, res) {
         };
         await senderAccount.update({ balance: senderAccount.balance });
         await Transaction.create(transactionDetails);
-        res.status(200).send(`Withdrawal of ${formatter.format(withdrawAmount)} from ${sender} was successful`);
+        res.status(200).send(`Withdrawal of ${withdrawAmount} from ${sender} was successful`);
     } catch (e) {
         res.json({ message: e });
     }

@@ -143,7 +143,7 @@
                    <div class="form-group">
                       <label for="">Select Account</label>
                       <!-- Select Account Option -->
-                      <select name="account_sender" class="form-control account-select" id="accountSelect">
+                      <select name="account_sender" class="form-control account-select" id="senderSelect">
                           <option value="">-- Select Account --</option>
                       </select>
                       <!-- End Of Select Account Option -->
@@ -501,24 +501,22 @@
           console.error('An error occurred:', error.message);
         }
       });
-      // listener to transfer beneficiary beneSelect
+      // listener to transfer beneficiary beneSelect senderSelect
       const transferButton = document.getElementById('transferButton');
       transferButton.addEventListener('click', async () => {
-        const benef = document.querySelector('input[name="account_bene"]').value;
-        const sender = document.querySelector('input[name="account_sender"]').value;
+        const benef = document.getElementById('beneSelect').value;
+        const sender = document.getElementById('senderSelect').value;
         // const paymentAmount = document.querySelector('input[name="payment_amount"]').value;
         const trfAmount = document.querySelector('input[name="transfer_amount"]').value;
 
-        
-
             // Check if all required fields are filled
-            if (!sender || !trfAmount) {
+            if (!sender || !trfAmount || !benef) {
                 alert('Please fill in all required fields');
                 return;
             }
 
             try {
-                const response = await fetch('/api/transfer', {
+                const response = await fetch('http://localhost:9000/api/transfer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -526,12 +524,11 @@
                     body: JSON.stringify({
                         account_no: benef,
                         sender: sender,
-                        amount: trfAmount,
-                        user_id: userId
+                        amount: trfAmount
                     }),
                 });
-
-                if (!response.ok) {
+                console.log(response);
+                if (response.status!== 200) {
                     throw new Error('Failed to initiate transfer');
                 }
 
@@ -541,6 +538,7 @@
                 alert('Transfer initiated successfully');
             } catch (error) {
                 // Handle errors here
+                console.error(error.message);
                 console.error('Error initiating transfer:', error.message);
                 alert('Failed to initiate transfer. Please try again.');
             }
