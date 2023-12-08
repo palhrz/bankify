@@ -95,63 +95,63 @@ async function sendEmail(user, res) {
     const hashedUniqString = await bcrypt.hash(uuid, saltRounds);
 
         // Use await with User_Verify.create
-        const userVerification = await UserVerify.create({
-            user_id: user.id,
-            uuid: hashedUniqString,
-        });
-        console.log('Sewnding email...');
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log("Send mail error",error);
-                res.status(500).send("Error sending email");
-            } else {
-                console.log('Email sent: ' + info.response);
-                res.status(200).send("Email sent: " + info.response);
-            }
-        });
-    }
-
-    exports.verify_user = async function(req, res) {
-        try {
-            const { user_id, uuid } = req.params;
-            console.log('Verifying....', user_id, uuid);
-    
-            const userVerification = await UserVerify.findOne({ where: { user_id } });
-    
-            if (!userVerification) {
-                return res.status(404).send('User verification record not found');
-            }
-    
-            // Assuming userVerification.uuidv4 is the unique string for verification
-            const result = await bcrypt.compare(uuid, userVerification.uuid);
-    
-            if (result) {
-                // Delete the verification record
-                await userVerification.destroy();
-    
-                // Update the User model to set the 'verified' field to true
-                const [updatedRowsCount] = await User.update(
-                    { verified: true },
-                    { where: { id: user_id } }
-                );
-                console.log(updatedRowsCount);
-                // Check if the update was successful
-                if (updatedRowsCount === 1) {
-                    console.log('Successfully');
-                    return res.status(200).send('User verified successfully');
-                } else {
-                    console.log('failed');
-                    return res.status(500).send('Failed to update user verification status');
-                }
-            } else {
-                console.log('Compare failed');
-                return res.status(400).send('Invalid verification string');
-            }
-        } catch (error) {
-            console.error(error);
-            return res.status(500).send('Internal Server Error');
+    const userVerification = await UserVerify.create({
+        user_id: user.id,
+        uuid: hashedUniqString,
+    });
+    console.log('Sewnding email...');
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log("Send mail error",error);
+            res.status(500).send("Error sending email");
+        } else {
+            console.log('Email sent: ' + info.response);
+            res.status(200).send("Email sent: " + info.response);
         }
-    };
+    });
+}
+
+exports.verify_user = async function(req, res) {
+    try {
+        const { user_id, uuid } = req.params;
+        console.log('Verifying....', user_id, uuid);
+
+        const userVerification = await UserVerify.findOne({ where: { user_id } });
+
+        if (!userVerification) {
+            return res.status(404).send('User verification record not found');
+        }
+
+        // Assuming userVerification.uuidv4 is the unique string for verification
+        const result = await bcrypt.compare(uuid, userVerification.uuid);
+
+        if (result) {
+            // Delete the verification record
+            await userVerification.destroy();
+
+            // Update the User model to set the 'verified' field to true
+            const [updatedRowsCount] = await User.update(
+                { verified: true },
+                { where: { id: user_id } }
+            );
+            console.log(updatedRowsCount);
+            // Check if the update was successful
+            if (updatedRowsCount === 1) {
+                console.log('Successfully');
+                return res.status(200).send('User verified successfully');
+            } else {
+                console.log('failed');
+                return res.status(500).send('Failed to update user verification status');
+            }
+        } else {
+            console.log('Compare failed');
+            return res.status(400).send('Invalid verification string');
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send('Internal Server Error');
+    }
+};
 
 exports.register_user = async function(req, res) {
     try {

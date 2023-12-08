@@ -31,7 +31,7 @@
 
            <!-- Display Name -->
            <div class="display-name ms-auto text-white">
-              <i class="fa fa-circle text-success me-2"></i> Welcome: <span>Jane Doe</span>
+              <i class="fa fa-circle text-success me-2"></i> Welcome: <span id="name"></span>
            </div>
            <!-- End Of Display Name -->
 
@@ -68,6 +68,21 @@
               const href = link.getAttribute('href');
               link.setAttribute('href', `${href}?id=${userId}`);
           });
+          try {
+            // Fetch payment history data
+            const response = await fetch(`http://localhost:9000/api/user/${userId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch user data');
+            }
+
+            const userData = await response.json();
+            console.log(userData);
+    
+            // Display user name
+            document.getElementById('name').innerText = `${userData.first_name} ${userData.last_name}`;
+          } catch (error) {
+              console.error('Error:', error.message);
+          }
           try {
               // Fetch payment history data
               const response = await fetch(`http://localhost:9000/api/tranxById/${userId}`);

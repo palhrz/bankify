@@ -383,9 +383,9 @@
           });
           
           if (!userId) {
-            alert('You need to sign in to view this page');
+            // alert('You need to sign in to view this page');
             throw new Error('User ID not found in the URL');
-            location.href = '/index';
+            // location.href = '/index';
           }
     
           const response = await fetch(`http://localhost:9000/api/user/${userId}`);
@@ -496,7 +496,50 @@
           console.error('An error occurred:', error.message);
         }
       });
+      // listener to transfer beneficiary beneSelect
+      const transferButton = document.getElementById('transferButton');
+      transferButton.addEventListener('click', async () => {
+        const benef = document.querySelector('input[name="account_bene"]').value;
+        const sender = document.querySelector('input[name="account_sender"]').value;
+        // const paymentAmount = document.querySelector('input[name="payment_amount"]').value;
+        const trfAmount = document.querySelector('input[name="transfer_amount"]').value;
 
+        
+
+            // Check if all required fields are filled
+            if (!sender || !trfAmount) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/transfer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        account_no: benef,
+                        sender: sender,
+                        amount: trfAmount,
+                        user_id: userId
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to initiate transfer');
+                }
+
+                const responseData = await response.json();
+                // Handle the success response here
+                console.log('Transfer initiated successfully:', responseData);
+                alert('Transfer initiated successfully');
+            } catch (error) {
+                // Handle errors here
+                console.error('Error initiating transfer:', error.message);
+                alert('Failed to initiate transfer. Please try again.');
+            }
+        });
       document.getElementById("addAccountBtn").addEventListener("click", function () {
             // Get selected values
             const urlSearchParams = new URLSearchParams(window.location.search);
@@ -550,56 +593,15 @@
                     location.reload();
                 });
         });
-        // listener to transfer beneficiary beneSelect
-        const transferButton = document.getElementById('transferButton');
-        const benef = document.querySelector('input[name="account_bene"]').value;
-        const sender = document.querySelector('input[name="account_sender"]').value;
-        // const paymentAmount = document.querySelector('input[name="payment_amount"]').value;
-        const trfAmount = document.querySelector('input[name="transfer_amount"]').value;
-
-        transferButton.addEventListener('click', async () => {
-
-            // Check if all required fields are filled
-            if (!sender || !trfAmount) {
-                alert('Please fill in all required fields');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/transfer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        account_no: benef,
-                        sender: sender,
-                        amount: trfAmount,
-                        user_id: userId
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to initiate transfer');
-                }
-
-                const responseData = await response.json();
-                // Handle the success response here
-                console.log('Transfer initiated successfully:', responseData);
-                alert('Transfer initiated successfully');
-            } catch (error) {
-                // Handle errors here
-                console.error('Error initiating transfer:', error.message);
-                alert('Failed to initiate transfer. Please try again.');
-            }
-        });
+        
 
         // listener to withdraw 
         const wdrawButton = document.getElementById('wdrawBtn');
-        const wdaracc = document.querySelector('input[name="account_wdraw"]').value;
-        const wdrawAmount = document.querySelector('input[name="withdraw_amount"]').value;
-
         wdrawButton.addEventListener('click', async () => {
+            const wdaracc = document.querySelector('input[name="account_wdraw"]').value;
+            const wdrawAmount = document.querySelector('input[name="withdraw_amount"]').value;
+
+        
 
             // Check if all required fields are filled
             if (!wdaracc || !wdrawAmount) {
@@ -639,10 +641,9 @@
         });
 
         const depoButton = document.getElementById('depoBtn');
-        const depoacc = document.querySelector('input[name="account_depo"]').value;
-        const depoAmount = document.querySelector('input[name="depo_amount"]').value;
-
         depoButton.addEventListener('click', async () => {
+            const depoacc = document.querySelector('input[name="account_depo"]').value;
+            const depoAmount = document.querySelector('input[name="depo_amount"]').value;
 
             // Check if all required fields are filled
             if (!depoacc || !depoAmount) {
