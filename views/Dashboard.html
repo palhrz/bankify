@@ -89,7 +89,7 @@
                   <div class="form-group">
                       <label for="">Select Account</label>
                       <!-- Select Account Option -->
-                      <select name="account_id" class="form-control account-select" id="accountSelect">
+                      <select name="account_id" class="form-control account-select" id="account_id">
                          <option value="">-- Select Account --</option>
                       </select>
                       <!-- End Of Select Account Option -->
@@ -179,7 +179,7 @@
                         <!-- Form Group -->
                         <div class="form-group mb-2">
                            <label for="">  Enter Deposit Amount</label>
-                           <input type="text" name="depo_amount" class="form-control" placeholder = "Enter Deposit Amount">
+                           <input type="text" name="depo_amount" class="form-control" placeholder = "Enter Deposit Amount" value="">
                        </div>
                        <!-- End Of Form Group -->                
 
@@ -419,18 +419,20 @@
           // Event listener for the "Pay" button
           const payButton = document.getElementById('payButton');
           payButton.addEventListener('click', () => {
-            const selectedAccount = selectAccount.value;
+            // const selectedAccount = selectAccount.value;
+            // const sender = document.getElementsByName('account_id').value;
+            const sender = document.getElementById('account_id').value;
             const beneficiary = document.querySelector('input[name="beneficiary"]').value;
             const accountNumber = document.querySelector('input[name="account_number"]').value;
             const reference = document.querySelector('input[name="reference"]').value;
             const paymentAmount = document.querySelector('input[name="payment_amount"]').value;
-    
+            console.log(sender, beneficiary, accountNumber, reference, paymentAmount);
             // Check if all required fields are filled
-            if (!selectedAccount || !beneficiary || !accountNumber || !reference || !paymentAmount) {
+            if (!sender || !beneficiary || !accountNumber || !reference || !paymentAmount) {
               alert('Please fill in all required fields');
               return;
             }
-    
+            
             // Make a POST request to localhost:9000/api/payment with the specified data
             fetch('http://localhost:9000/api/payment', {
               method: 'POST',
@@ -440,20 +442,23 @@
               body: JSON.stringify({
                 name: beneficiary,
                 account_no: accountNumber,
-                sender: selectedAccount,
+                sender: sender,
                 amount: paymentAmount,
-                description: reference,
+                reference: reference,
               }),
             })
               .then(response => {
                 if (!response.ok) {
                   throw new Error('Failed to make payment');
+                  location.reload();
                 }
                 alert('Payment successful!');
+                location.reload();
               })
               .catch(error => {
                 console.error('Error:', error.message);
                 alert('Failed to make payment. Please try again.');
+                location.reload();
               });
           });
           
@@ -642,7 +647,7 @@
 
         const depoButton = document.getElementById('depoBtn');
         depoButton.addEventListener('click', async () => {
-            const depoacc = document.querySelector('input[name="account_depo"]').value;
+            const depoacc = document.querySelector('input[name="account_depo"]').text;
             const depoAmount = document.querySelector('input[name="depo_amount"]').value;
 
             // Check if all required fields are filled
